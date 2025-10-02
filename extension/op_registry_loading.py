@@ -38,10 +38,6 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
 
         try:
             print("\nexecute: TODO: a")
-            self.report(
-                {"ERROR"},
-                "using " + host + ":" + str(port),
-            )
             rpc_response = brp_simple_request("rpc.discover", host, port)
             print("\nexecute: TODO: b")
             print(rpc_response)
@@ -58,9 +54,9 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
             bevy_version = rpc_response["result"]["info"]["version"]
             print(bevy_version)
             if bevy_version.startswith("0.16"):
-                brp_response = brp_simple_request("bevy/registry/schema")
+                brp_response = brp_simple_request("bevy/registry/schema", host, port)
             elif bevy_version.startswith("0.17"):
-                brp_response = brp_simple_request("registry.schema")
+                brp_response = brp_simple_request("registry.schema", host, port)
         except:
             self.report(
                 {"ERROR"},
@@ -143,7 +139,6 @@ def brp_simple_request(rpc_endpoint, host="http://127.0.0.1", port=15702):
 def brp_fetch_skein_presets(host="http://127.0.0.1", port=15702):
     """Fetch the presets (and Default values) from a running Bevy application"""
     data = {"jsonrpc": "2.0", "method": "skein/presets", "params": {}}
-    print("using " + host + " and " + str(port))
     r = requests.post(host + ":" + str(port), json=data)
     brp_response = r.json()
     return brp_response
