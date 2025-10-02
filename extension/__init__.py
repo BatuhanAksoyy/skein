@@ -1,17 +1,67 @@
-import bpy # type: ignore
+import bpy  # type: ignore
 import json
 from bpy.app.handlers import persistent
-from .op_apply_preset import ApplyPresetToBone, ApplyPresetToCollection, ApplyPresetToLight, ApplyPresetToMaterial, ApplyPresetToMesh, ApplyPresetToObject, ApplyPresetToScene
-from .cli_dump_component_data import dump_component_data # type: ignore
-from .op_insert_component import InsertComponentOnBone, InsertComponentOnCollection, InsertComponentOnLight, InsertComponentOnMaterial, InsertComponentOnMesh, InsertComponentOnObject, InsertComponentOnScene
+from .op_apply_preset import (
+    ApplyPresetToBone,
+    ApplyPresetToCollection,
+    ApplyPresetToLight,
+    ApplyPresetToMaterial,
+    ApplyPresetToMesh,
+    ApplyPresetToObject,
+    ApplyPresetToScene,
+)
+from .cli_dump_component_data import dump_component_data  # type: ignore
+from .op_insert_component import (
+    InsertComponentOnBone,
+    InsertComponentOnCollection,
+    InsertComponentOnLight,
+    InsertComponentOnMaterial,
+    InsertComponentOnMesh,
+    InsertComponentOnObject,
+    InsertComponentOnScene,
+)
 from .op_registry_loading import FetchRemoteTypeRegistry, ReloadSkeinRegistryJson
-from .op_remove_component import RemoveComponentOnBone, RemoveComponentOnCollection, RemoveComponentOnLight, RemoveComponentOnMaterial, RemoveComponentOnMesh, RemoveComponentOnObject, RemoveComponentOnScene
+from .op_remove_component import (
+    RemoveComponentOnBone,
+    RemoveComponentOnCollection,
+    RemoveComponentOnLight,
+    RemoveComponentOnMaterial,
+    RemoveComponentOnMesh,
+    RemoveComponentOnObject,
+    RemoveComponentOnScene,
+)
 from .op_debug_check_components import DebugCheckComponents
 from .property_groups import ComponentData
-from .skein_panel import SkeinPanelBone, SkeinPanelCollection, SkeinPanelLight, SkeinPanelObject, SkeinPanelMesh, SkeinPanelMaterial, SkeinPanelScene
-from .skein_panel_presets import SkeinPanelPresetsBone, SkeinPanelPresetsCollection, SkeinPanelPresetsLight, SkeinPanelPresetsMaterial, SkeinPanelPresetsMesh, SkeinPanelPresetsObject, SkeinPanelPresetsScene # type: ignore
+from .skein_panel import (
+    SkeinPanelBone,
+    SkeinPanelCollection,
+    SkeinPanelLight,
+    SkeinPanelObject,
+    SkeinPanelMesh,
+    SkeinPanelMaterial,
+    SkeinPanelScene,
+)
+from .skein_panel_presets import (
+    SkeinPanelPresetsBone,
+    SkeinPanelPresetsCollection,
+    SkeinPanelPresetsLight,
+    SkeinPanelPresetsMaterial,
+    SkeinPanelPresetsMesh,
+    SkeinPanelPresetsObject,
+    SkeinPanelPresetsScene,
+)  # type: ignore
+
 # these imports appear unused, but are *required* for the export extension to work
-from .gltf_export_extension import glTF_extension_name, extension_is_required, SkeinExtensionProperties, draw_export, glTF2ExportUserExtension, pre_export_hook, glTF2_pre_export_callback
+from .gltf_export_extension import (
+    glTF_extension_name,
+    extension_is_required,
+    SkeinExtensionProperties,
+    draw_export,
+    glTF2ExportUserExtension,
+    pre_export_hook,
+    glTF2_pre_export_callback,
+)
+
 
 class SkeinAddonPreferences(bpy.types.AddonPreferences):
     # This must match the add-on name, use `__package__`
@@ -21,28 +71,44 @@ class SkeinAddonPreferences(bpy.types.AddonPreferences):
     debug: bpy.props.BoolProperty(
         name="Debug",
         description="Enable logs when launching Blender from the console",
-        default=False
-    ) # type: ignore
+        default=False,
+    )  # type: ignore
     presets: bpy.props.BoolProperty(
         name="Presets",
         description="Enable the fetching of Default and Preset implementations from Bevy, and the usage of Defaults when inserting a new Component.",
-        default=True
-    ) # type: ignore
+        default=True,
+    )  # type: ignore
+    host: bpy.props.StringProperty(
+        name="Host",
+        description="Change the default host value of the BRP protocol.",
+        default="http://127.0.0.1",
+    )  # type: ignore
+    port: bpy.props.IntProperty(
+        name="Port",
+        description="Change the default port value of the BRP protocol.",
+        default=15702,
+    )  # type: ignore
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="Skein Preferences")
         layout.prop(self, "debug")
         layout.prop(self, "presets")
+        layout.prop(self, "host")
+        layout.prop(self, "port")
+
 
 class ComponentTypeData(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="Name", default="Unknown") # type: ignore
-    value: bpy.props.StringProperty(name="Value", default="Unknown") # type: ignore
-    type_path: bpy.props.StringProperty(name="Type Path", default="Unknown") # type: ignore
-    short_path: bpy.props.StringProperty(name="Short Path", default="Unknown") # type: ignore
+    name: bpy.props.StringProperty(name="Name", default="Unknown")  # type: ignore
+    value: bpy.props.StringProperty(name="Value", default="Unknown")  # type: ignore
+    type_path: bpy.props.StringProperty(name="Type Path", default="Unknown")  # type: ignore
+    short_path: bpy.props.StringProperty(name="Short Path", default="Unknown")  # type: ignore
+
 
 class PGSkeinWindowProps(bpy.types.PropertyGroup):
-    registry: bpy.props.StringProperty(name="Bevy Registry", default="{}") # type: ignore
-    components: bpy.props.CollectionProperty(type=ComponentTypeData) # type: ignore
+    registry: bpy.props.StringProperty(name="Bevy Registry", default="{}")  # type: ignore
+    components: bpy.props.CollectionProperty(type=ComponentTypeData)  # type: ignore
+
 
 def on_select_new_component(self, context):
     """Executed when a new component is selected for insertion onto an object
@@ -56,8 +122,7 @@ def on_select_new_component(self, context):
 
     if debug:
         print("\n###### on_select_new_component")
-        selected_component = context.window_manager.selected_component;
-
+        selected_component = context.window_manager.selected_component
         print("\nselected_component: ", selected_component)
         global_skein = context.window_manager.skein
         if global_skein.registry:
@@ -68,10 +133,12 @@ def on_select_new_component(self, context):
                 print("\nno data in registry")
         print("\n######\n")
 
+
 # --------------------------------- #
 #  a hook to run when opening a     #
 #  new blend file                   #
 # --------------------------------- #
+
 
 @persistent
 def on_post_blend_file_load(blend_file):
@@ -85,11 +152,13 @@ cli_commands = []
 #  Registration and unregistration  #
 # --------------------------------- #
 
+
 # add to the Blender menus
 def menu_func(self, context):
     self.layout.operator(FetchRemoteTypeRegistry.bl_idname)
     # self.layout.operator(DebugCheckComponents.bl_idname)
     self.layout.operator(ReloadSkeinRegistryJson.bl_idname)
+
 
 def register():
     bpy.utils.register_class(SkeinAddonPreferences)
@@ -195,16 +264,24 @@ def register():
 
     # gltf extension
     bpy.utils.register_class(SkeinExtensionProperties)
-    bpy.types.Scene.skein_extension_properties = bpy.props.PointerProperty(type=SkeinExtensionProperties)
+    bpy.types.Scene.skein_extension_properties = bpy.props.PointerProperty(
+        type=SkeinExtensionProperties
+    )
 
     # add handlers to run when .blend file loads
     bpy.app.handlers.load_post.append(on_post_blend_file_load)
 
-    cli_commands.append(bpy.utils.register_cli_command("dump_component_data", dump_component_data))
+    cli_commands.append(
+        bpy.utils.register_cli_command("dump_component_data", dump_component_data)
+    )
 
     # Use the following 2 lines to register the UI for the gltf extension hook
-    from io_scene_gltf2 import exporter_extension_layout_draw # type: ignore
-    exporter_extension_layout_draw['Example glTF Extension'] = draw_export # Make sure to use the same name in unregister()
+    from io_scene_gltf2 import exporter_extension_layout_draw  # type: ignore
+
+    exporter_extension_layout_draw["Example glTF Extension"] = (
+        draw_export  # Make sure to use the same name in unregister()
+    )
+
 
 def unregister():
     global_skein = bpy.context.window_manager.skein
@@ -219,7 +296,7 @@ def unregister():
             bpy.utils.unregister_class(property_group)
         except:
             # unregister_class is recursive and we re-use classes
-            # in many cases. So unregistering one class that uses 
+            # in many cases. So unregistering one class that uses
             # another causes that class to *already* be unregistered
             # when we go to unregister it directly.
             pass
@@ -282,5 +359,8 @@ def unregister():
     bpy.types.TOPBAR_MT_edit.remove(menu_func)
 
     # Use the following 2 lines to unregister the UI for this hook
-    from io_scene_gltf2 import exporter_extension_layout_draw # type: ignore
-    del exporter_extension_layout_draw['Example glTF Extension'] # Make sure to use the same name in register()
+    from io_scene_gltf2 import exporter_extension_layout_draw  # type: ignore
+
+    del exporter_extension_layout_draw[
+        "Example glTF Extension"
+    ]  # Make sure to use the same name in register()
