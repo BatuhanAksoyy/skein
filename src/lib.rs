@@ -44,12 +44,18 @@ pub struct SkeinPlugin {
     /// only enable BRP in dev builds.
     #[allow(dead_code)]
     pub handle_brp: bool,
+    pub address: String,
+    pub port: u16,
 }
 
 impl Default for SkeinPlugin {
     fn default() -> Self {
         let dev = cfg!(debug_assertions);
-        Self { handle_brp: dev }
+        Self {
+            handle_brp: dev,
+            address: "127.0.0.1".to_string(),
+            port: 15702,
+        }
     }
 }
 
@@ -63,6 +69,8 @@ impl Plugin for SkeinPlugin {
             feature = "brp"
         ))]
         if self.handle_brp {
+            use std::net::IpAddr;
+
             #[allow(unused_mut)]
             let mut remote_plugin =
                 bevy_remote::RemotePlugin::default();
@@ -77,7 +85,9 @@ impl Plugin for SkeinPlugin {
 
             app.add_plugins((
                 remote_plugin,
-                bevy_remote::http::RemoteHttpPlugin::default(),
+                bevy_remote::http::RemoteHttpPlugin::default()
+                    .with_address(self.address.parse::<IpAddr>().unwrap())
+                    .with_port(self.port),
             ));
         }
     }
