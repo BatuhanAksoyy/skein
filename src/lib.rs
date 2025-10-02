@@ -45,7 +45,7 @@ pub struct SkeinPlugin {
     #[allow(dead_code)]
     pub handle_brp: bool,
     pub address: String,
-    pub port: u32,
+    pub port: u16,
 }
 
 impl Default for SkeinPlugin {
@@ -53,7 +53,7 @@ impl Default for SkeinPlugin {
         let dev = cfg!(debug_assertions);
         Self {
             handle_brp: dev,
-            address: "127.0.0.1",
+            address: "127.0.0.1".to_string(),
             port: 15702,
         }
     }
