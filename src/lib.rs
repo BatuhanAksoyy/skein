@@ -84,7 +84,7 @@ impl Plugin for SkeinPlugin {
             app.add_plugins((
                 remote_plugin,
                 bevy_remote::http::RemoteHttpPlugin::default()
-                    .with_address(self.address)
+                    .with_address(self.address.into())
                     .with_port(self.port),
             ));
         }
