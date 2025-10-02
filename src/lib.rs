@@ -69,6 +69,8 @@ impl Plugin for SkeinPlugin {
             feature = "brp"
         ))]
         if self.handle_brp {
+            use std::net::IpAddr;
+
             #[allow(unused_mut)]
             let mut remote_plugin =
                 bevy_remote::RemotePlugin::default();
@@ -84,7 +86,7 @@ impl Plugin for SkeinPlugin {
             app.add_plugins((
                 remote_plugin,
                 bevy_remote::http::RemoteHttpPlugin::default()
-                    .with_address(self.address.into())
+                    .with_address(self.address.parse::<IpAddr>().unwrap())
                     .with_port(self.port),
             ));
         }
