@@ -62,9 +62,6 @@ from .gltf_export_extension import (
     glTF2_pre_export_callback,
 )
 
-host = "127.0.0.1"
-port = 15702
-
 
 class SkeinAddonPreferences(bpy.types.AddonPreferences):
     # This must match the add-on name, use `__package__`
@@ -84,12 +81,12 @@ class SkeinAddonPreferences(bpy.types.AddonPreferences):
     host: bpy.props.StringProperty(
         name="Host",
         description="Change the default host value of the BRP protocol.",
-        default=host,
+        default="http://127.0.0.1",
     )  # type: ignore
     port: bpy.props.IntProperty(
         name="Port",
         description="Change the default port value of the BRP protocol.",
-        default=port,
+        default=15702,
     )  # type: ignore
 
     def draw(self, context):

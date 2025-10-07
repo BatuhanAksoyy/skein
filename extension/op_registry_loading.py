@@ -4,7 +4,6 @@ import bpy  # type: ignore
 import json
 import requests  # type: ignore
 import os
-import extension
 from .property_groups import hash_over_64, make_property
 # --------------------------------- #
 #  Fetch and store the bevy type    #
@@ -28,8 +27,8 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
             debug = preferences.debug
             presets = preferences.presets
 
-            extension.host = preferences.host
-            extension.port = preferences.port
+            host = preferences.host
+            port = preferences.port
 
         if debug:
             print("\nexecute: FetchRemoteTypeRegistry")
@@ -38,7 +37,7 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
 
         try:
             print("\nexecute: TODO: a")
-            rpc_response = brp_simple_request("rpc.discover")
+            rpc_response = brp_simple_request("rpc.discover", host, port)
             print("\nexecute: TODO: b")
             print(rpc_response)
             if rpc_response is not None and "error" in rpc_response:
@@ -54,9 +53,9 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
             bevy_version = rpc_response["result"]["info"]["version"]
             print(bevy_version)
             if bevy_version.startswith("0.16"):
-                brp_response = brp_simple_request("bevy/registry/schema")
+                brp_response = brp_simple_request("bevy/registry/schema", host, port)
             elif bevy_version.startswith("0.17"):
-                brp_response = brp_simple_request("registry.schema")
+                brp_response = brp_simple_request("registry.schema", host, port)
         except:
             self.report(
                 {"ERROR"},
@@ -94,7 +93,7 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
         # and view the output)
         if presets:
             try:
-                brp_response = brp_fetch_skein_presets()
+                brp_response = brp_fetch_skein_presets(host, port)
             except:
                 print(
                     "Could not connect to bevy application to fetch presets data from the Bevy Remote Protocol"
@@ -124,21 +123,21 @@ class FetchRemoteTypeRegistry(bpy.types.Operator):
 
 # TODO: allow configuration of url via addon settings or
 # custom fetch operator?
-def brp_simple_request(rpc_endpoint):
+def brp_simple_request(rpc_endpoint, host="http://127.0.0.1", port=15702):
     """Fetch the registry schema from a running Bevy application"""
     # 0.16 payload
     data = {"jsonrpc": "2.0", "method": rpc_endpoint, "params": {}}
-    r = requests.post(extension.host + ":" + str(extension.port), json=data)
+    r = requests.post(host + ":" + str(port), json=data)
     brp_response = r.json()
     return brp_response
 
 
 # TODO: allow configuration of url via addon settings or
 # custom fetch operator?
-def brp_fetch_skein_presets():
+def brp_fetch_skein_presets(host="http://127.0.0.1", port=15702):
     """Fetch the presets (and Default values) from a running Bevy application"""
     data = {"jsonrpc": "2.0", "method": "skein/presets", "params": {}}
-    r = requests.post(extension.host + ":" + str(extension.port), json=data)
+    r = requests.post(host + ":" + str(port), json=data)
     brp_response = r.json()
     return brp_response
 
